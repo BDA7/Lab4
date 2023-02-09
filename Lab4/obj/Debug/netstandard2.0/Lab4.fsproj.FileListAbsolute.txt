@@ -1,0 +1,8 @@
+/Users/aleksandr/Projects/Lab4/Lab4/bin/Debug/netstandard2.0/Lab4.deps.json
+/Users/aleksandr/Projects/Lab4/Lab4/bin/Debug/netstandard2.0/Lab4.dll
+/Users/aleksandr/Projects/Lab4/Lab4/bin/Debug/netstandard2.0/Lab4.pdb
+/Users/aleksandr/Projects/Lab4/Lab4/obj/Debug/netstandard2.0/Lab4.AssemblyInfoInputs.cache
+/Users/aleksandr/Projects/Lab4/Lab4/obj/Debug/netstandard2.0/Lab4.AssemblyInfo.fs
+/Users/aleksandr/Projects/Lab4/Lab4/obj/Debug/netstandard2.0/Lab4.dll
+/Users/aleksandr/Projects/Lab4/Lab4/obj/Debug/netstandard2.0/Lab4.pdb
+/Users/aleksandr/Projects/Lab4/Lab4/obj/Debug/netstandard2.0/Lab4.fsproj.AssemblyReference.cache

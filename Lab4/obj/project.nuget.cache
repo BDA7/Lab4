@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "tBoR9og6qy1b3HCss8QlnfiN6vEYlJXz+NEe8UlOE2TvR5ymlRmVFP+/a8ICcbkM2/8rJdecRz0GyqP4bCXVow==",
+  "success": true,
+  "projectFilePath": "/Users/aleksandr/Projects/Lab4/Lab4/Lab4.fsproj",
+  "expectedPackageFiles": [
+    "/Users/aleksandr/.nuget/packages/fsharp.core/5.0.0/fsharp.core.5.0.0.nupkg.sha512",
+    "/Users/aleksandr/.nuget/packages/microsoft.netcore.platforms/1.1.0/microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "/Users/aleksandr/.nuget/packages/netstandard.library/2.0.3/netstandard.library.2.0.3.nupkg.sha512",
+    "/Users/aleksandr/.nuget/packages/xamarin.forms/5.0.0.2545/xamarin.forms.5.0.0.2545.nupkg.sha512"
+  ],
+  "logs": []
+}
