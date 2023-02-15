@@ -1,0 +1,35 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 3.1.x
+      - name: Setup linter
+        run: dotnet tool install -g dotnet-fsharplint
+      - name: Setup formatter
+        run: dotnet tool install -g fantomas
+      - name: Restore dependencies
+        run: |
+          dotnet restore ./lab4/lab4.fsproj
+      - name: Build
+        run: |
+          dotnet build --no-restore ./lab4/lab4.fsproj
+      - name: Lint
+        run: |
+          dotnet fsharplint lint ./lab4/*.fs
+      - name: Format
+        run: |
+          fantomas ./lab4/*.fs
