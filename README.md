@@ -145,3 +145,6 @@ let setupRootView () =
 
         (view)
 ```
+
+
+## Тесты для функций лежат тут: https://github.com/BDA7/Test2048App
