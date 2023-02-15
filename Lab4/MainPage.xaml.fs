@@ -1,66 +1,263 @@
 ﻿namespace Lab4
 
+open System
 open Xamarin.Forms
 open Xamarin.Forms.Xaml
 
-type StartPage() as this =
+type MainPage(numberX: int) as this =
     inherit ContentPage()
-    let titleLabel = Label(Text = "Size grid: 4")
+    let r = System.Random()
+    let myList = Array2D.zeroCreate<Frame> numberX numberX
+    let elemsArr = Array2D.create (numberX) (numberX) ""
 
 
-    let setupSlider () =
-        let slider = Stepper(2.0, 5.0, 4.0, 1.0)
-
-        slider.ValueChanged.Add(fun x ->
-            let str = x.NewValue.ToString()
-            titleLabel.Text <- "Size grid: " + str)
-
-        (slider)
+    let generateRandomNum () =
+        let choosingValues = [| "2"; "4" |]
+        let value = choosingValues.[(r.Next(0, 2))]
+        (value)
 
 
-    let actionButton () =
-        let value = titleLabel.Text
-        let chara = value.[11].ToString() |> int
-        this.Navigation.PushAsync(MainPage(chara), true) |> ignore
+    let createBox () =
+        let newBox = Frame()
+        newBox.Margin <- Thickness(5.0, 5.0, 5.0, 5.0)
+        newBox.CornerRadius <- (float32) 8.0
+        newBox.BackgroundColor <- Color.Salmon
+        newBox
 
-    let setupButton () =
-        let button = Button()
-        button.Clicked.Add(fun _ -> actionButton ())
-        button.CornerRadius <- 10
-        button.BackgroundColor <- Color.Salmon
-        button.TextColor <- Color.White
-        button.Text <- "Transition"
-        (button)
+
+    let createLab myText =
+        let newLabel = Label()
+        newLabel.Text <- myText
+        newLabel.TextColor <- Color.White
+        newLabel.HorizontalOptions <- LayoutOptions.Center
+        newLabel.VerticalOptions <- LayoutOptions.Center
+        newLabel.FontSize <- Device.GetNamedSize(NamedSize.Medium, newLabel)
+        newLabel
+
+
+    let updateGrid (list2: string[,]) =
+        for i in 0 .. (numberX - 1) do
+            for j in 0 .. (numberX - 1) do
+                let value = list2.[i, j]
+                myList.[i, j].Content <- createLab value
+
+
+    let checkEnd () =
+        let oldValue = elemsArr
+        updateGrid elemsArr
+
+        if (oldValue = elemsArr) then
+            this.Navigation.PopAsync() |> ignore
+
+        ()
+
+
+    let generateNewValue () =
+        let freeBoxes =
+            elemsArr
+            |> Array2D.mapi (fun i j v ->
+                match v with
+                | "" -> (i, j)
+                | _ -> (-1, -1))
+
+        let free: (int * int) list =
+            freeBoxes
+            |> Seq.cast<int * int>
+            |> Seq.toList
+            |> List.filter (fun els -> els <> (-1, -1))
+
+        if (free.Length > 0) then
+            let idx = r.Next(0, free.Length - 1)
+            let newValue = generateRandomNum ()
+            let i, j = free.[idx]
+            elemsArr.[i, j] <- newValue
+            updateGrid elemsArr
+        else
+            checkEnd ()
+
+
+    let rendomizeSetup () =
+        generateNewValue ()
+        generateNewValue ()
+
+
+    let rec shifLeftUp (arr: string[]) (value: string) (i: int) =
+        if (i < 0) || (arr.[i] <> "") then
+            (arr)
+        else
+            arr.[i + 1] <- ""
+            arr.[i] <- value
+            shifLeftUp arr value (i - 1)
+
+
+    let rec shiftRightDown (arr: string[]) (value: string) (i: int) =
+        if (i > numberX - 1) || (arr.[i] <> "") then
+            (arr)
+        else
+            arr.[i] <- value
+            arr.[i - 1] <- ""
+            shiftRightDown arr value (i + 1)
+
+
+
+    let myHandlerLeft () =
+        let shift () =
+            for i in 0 .. (numberX - 1) do
+                for j in 0 .. (numberX - 1) do
+                    if elemsArr.[i, j] <> "" then
+                        elemsArr.[i, *] <- shifLeftUp elemsArr.[i, *] elemsArr.[i, j] (j - 1)
+
+            ()
+
+        shift ()
+
+        for i in 0 .. (numberX - 1) do
+            for j in 0 .. (numberX - 2) do
+                if (elemsArr.[i, j] = elemsArr.[i, j + 1]) && (elemsArr.[i, j] <> "") then
+                    let value = elemsArr.[i, j] |> int
+                    elemsArr.[i, j] <- (value * 2).ToString()
+                    elemsArr.[i, j + 1] <- ""
+
+        shift ()
+        updateGrid elemsArr
+
+
+    let handlerRight () =
+        let shift () =
+            for i in 0 .. (numberX - 1) do
+                for j in (numberX - 1) .. -1 .. 0 do
+                    if (elemsArr.[i, j] <> "") then
+                        elemsArr.[i, *] <- shiftRightDown elemsArr.[i, *] elemsArr.[i, j] (j + 1)
+
+        shift ()
+
+        for i in 0 .. (numberX - 1) do
+            for j in (numberX - 1) .. -1 .. 1 do
+                if (elemsArr.[i, j] = elemsArr.[i, j - 1]) && (elemsArr.[i, j] <> "") then
+                    let value = elemsArr.[i, j] |> int
+                    elemsArr.[i, j] <- (value * 2).ToString()
+                    elemsArr.[i, j - 1] <- ""
+
+        shift ()
+
+        updateGrid elemsArr
+
+
+    let handlerUp () =
+        let shift () =
+            for i in 0 .. (numberX - 1) do
+                for j in 0 .. (numberX - 1) do
+                    if (elemsArr.[j, i] <> "") then
+                        elemsArr.[*, i] <- shifLeftUp elemsArr.[*, i] elemsArr.[j, i] (j - 1)
+
+        shift ()
+
+        for i in 0 .. (numberX - 1) do
+            for j in 0 .. (numberX - 2) do
+                if (elemsArr.[j, i] = elemsArr.[j + 1, i]) && (elemsArr.[j, i] <> "") then
+                    let value = elemsArr.[j, i] |> int
+                    elemsArr.[j, i] <- (value * 2).ToString()
+                    elemsArr.[j + 1, i] <- ""
+
+        shift ()
+
+        updateGrid elemsArr
+
+
+    let handlerDown () =
+        let shift () =
+            for i in 0 .. (numberX - 1) do
+                for j in (numberX - 1) .. -1 .. 0 do
+                    if (elemsArr.[j, i] <> "") then
+                        elemsArr.[*, i] <- shiftRightDown elemsArr.[*, i] elemsArr.[j, i] (j + 1)
+
+        shift ()
+
+        for i in 0 .. (numberX - 1) do
+            for j in (numberX - 1) .. -1 .. 1 do
+                if (elemsArr.[j, i] = elemsArr.[j - 1, i]) && (elemsArr.[j, i] <> "") then
+                    let value = elemsArr.[j, i] |> int
+                    elemsArr.[j, i] <- (value * 2).ToString()
+                    elemsArr.[j - 1, i] <- ""
+
+        shift ()
+
+        updateGrid elemsArr
+
+
+    let addRecogrinzers (grid: Grid) (myList: Frame[,]) =
+        let leftRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Left)
+
+        leftRecognizer.Swiped.Add(fun _ ->
+            myHandlerLeft ()
+            generateNewValue ())
+
+        let rightRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Right)
+
+        rightRecognizer.Swiped.Add(fun _ ->
+            handlerRight ()
+            generateNewValue ())
+
+        let upRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Up)
+
+        upRecognizer.Swiped.Add(fun _ ->
+            handlerUp ()
+            generateNewValue ())
+
+        let downRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Down)
+
+        downRecognizer.Swiped.Add(fun _ ->
+            handlerDown ()
+            generateNewValue ())
+
+        grid.GestureRecognizers.Add leftRecognizer
+        grid.GestureRecognizers.Add rightRecognizer
+        grid.GestureRecognizers.Add upRecognizer
+        grid.GestureRecognizers.Add downRecognizer
+
+
+    let setupGrid () =
+        let grid = Grid()
+        let rows = RowDefinitionCollection()
+        let newRow = RowDefinition()
+        newRow.Height <- GridLength(100.0, GridUnitType.Star)
+        let columns = ColumnDefinitionCollection()
+        let newColumn = ColumnDefinition()
+        newColumn.Width <- GridLength(100.0, GridUnitType.Star)
+
+        for i in 0 .. (numberX - 1) do
+            rows.Add newRow
+            columns.Add newColumn
+
+        grid.RowDefinitions <- rows
+        grid.ColumnDefinitions <- columns
+
+        for i in 0 .. (numberX - 1) do
+            for j in 0 .. (numberX - 1) do
+                let newBox = createBox ()
+                grid.Children.Add(newBox, i, j)
+                myList.[j, i] <- newBox
+
+        rendomizeSetup ()
+
+        addRecogrinzers grid myList
+        (grid)
+
 
     let setupRootView () =
         let view = RelativeLayout()
-        view.BackgroundColor <- Color.Gray
-        let button = setupButton ()
-        let slider = setupSlider ()
-
-        titleLabel.FontSize <- Device.GetNamedSize(NamedSize.Large, titleLabel)
-
-        view.Children.Add(
-            titleLabel,
-            Constraint.RelativeToParent(fun x -> x.Width / 2.0 - 55.0),
-            Constraint.RelativeToParent(fun x -> x.X)
-        )
-
-        view.Children.Add(
-            button,
-            Constraint.RelativeToParent(fun x -> x.Width / 2.0 - 60.0),
-            Constraint.RelativeToParent(fun x -> x.Height / 2.0 - 30.0),
-            Constraint.Constant(120.0),
-            Constraint.Constant(60.0)
-        )
-
-        view.Children.Add(
-            slider,
-            Constraint.RelativeToParent(fun x -> x.Width / 2.0 - 47.0),
-            Constraint.RelativeToView(button, (fun _ x -> x.Y + 75.0))
-        )
-
         view.BackgroundColor <- Color.Beige
+        let grid = setupGrid ()
+
+        view.Children.Add(
+            grid,
+            Constraint.Constant(10.0),
+            Constraint.Constant(0.0),
+            Constraint.RelativeToParent(fun x -> x.Width - 20.0),
+            Constraint.RelativeToParent(fun x -> x.Width - 20.0)
+        )
+
         (view)
 
-    let initialize = base.Content <- setupRootView ()
+
+    let baseViewLoad = base.Content <- setupRootView ()
