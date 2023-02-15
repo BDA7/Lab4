@@ -10,6 +10,13 @@
     <Compile Include="MainPage.xaml.fs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="StartPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <Compile Include="StartPage.xaml.fs">
+      <DependentUpon>StartPage.xaml</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="App.xaml" />
     <Compile Include="App.xaml.fs">
       <DependentUpon>App.xaml</DependentUpon>

@@ -3,5 +3,5 @@
 open Xamarin.Forms
 
 type App() =
-    inherit Application(MainPage = MainPage())
+    inherit Application(MainPage = NavigationPage (new StartPage ()))
 
