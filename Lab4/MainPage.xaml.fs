@@ -3,50 +3,21 @@
 open System
 open Xamarin.Forms
 open Xamarin.Forms.Xaml
+open FunctionsUI
+open Interactor
 
-type MainPage(numberX: int) as this =
+type MainPage(numberRows: int) as this =
     inherit ContentPage()
     let r = System.Random()
-    let myList = Array2D.zeroCreate<Frame> numberX numberX
-    let elemsArr = Array2D.create (numberX) (numberX) ""
+    let frames = Array2D.zeroCreate<Frame> numberRows numberRows
+    let positions = Array2D.create (numberRows) (numberRows) ""
 
 
-    let generateRandomNum () =
-        let choosingValues = [| "2"; "4" |]
-        let value = choosingValues.[(r.Next(0, 2))]
-        (value)
+    let checkEndGame () =
+        let oldValue = positions
+        updateGrid positions numberRows frames
 
-
-    let createBox () =
-        let newBox = Frame()
-        newBox.Margin <- Thickness(5.0, 5.0, 5.0, 5.0)
-        newBox.CornerRadius <- (float32) 8.0
-        newBox.BackgroundColor <- Color.Salmon
-        newBox
-
-
-    let createLab myText =
-        let newLabel = Label()
-        newLabel.Text <- myText
-        newLabel.TextColor <- Color.White
-        newLabel.HorizontalOptions <- LayoutOptions.Center
-        newLabel.VerticalOptions <- LayoutOptions.Center
-        newLabel.FontSize <- Device.GetNamedSize(NamedSize.Medium, newLabel)
-        newLabel
-
-
-    let updateGrid (list2: string[,]) =
-        for i in 0 .. (numberX - 1) do
-            for j in 0 .. (numberX - 1) do
-                let value = list2.[i, j]
-                myList.[i, j].Content <- createLab value
-
-
-    let checkEnd () =
-        let oldValue = elemsArr
-        updateGrid elemsArr
-
-        if (oldValue = elemsArr) then
+        if (oldValue = positions) then
             this.Navigation.PopAsync() |> ignore
 
         ()
@@ -54,7 +25,7 @@ type MainPage(numberX: int) as this =
 
     let generateNewValue () =
         let freeBoxes =
-            elemsArr
+            positions
             |> Array2D.mapi (fun i j v ->
                 match v with
                 | "" -> (i, j)
@@ -70,10 +41,10 @@ type MainPage(numberX: int) as this =
             let idx = r.Next(0, free.Length - 1)
             let newValue = generateRandomNum ()
             let i, j = free.[idx]
-            elemsArr.[i, j] <- newValue
-            updateGrid elemsArr
+            positions.[i, j] <- newValue
+            updateGrid positions numberRows frames
         else
-            checkEnd ()
+            checkEndGame ()
 
 
     let rendomizeSetup () =
@@ -81,133 +52,30 @@ type MainPage(numberX: int) as this =
         generateNewValue ()
 
 
-    let rec shifLeftUp (arr: string[]) (value: string) (i: int) =
-        if (i < 0) || (arr.[i] <> "") then
-            (arr)
-        else
-            arr.[i + 1] <- ""
-            arr.[i] <- value
-            shifLeftUp arr value (i - 1)
 
-
-    let rec shiftRightDown (arr: string[]) (value: string) (i: int) =
-        if (i > numberX - 1) || (arr.[i] <> "") then
-            (arr)
-        else
-            arr.[i] <- value
-            arr.[i - 1] <- ""
-            shiftRightDown arr value (i + 1)
-
-
-
-    let myHandlerLeft () =
-        let shift () =
-            for i in 0 .. (numberX - 1) do
-                for j in 0 .. (numberX - 1) do
-                    if elemsArr.[i, j] <> "" then
-                        elemsArr.[i, *] <- shifLeftUp elemsArr.[i, *] elemsArr.[i, j] (j - 1)
-
-            ()
-
-        shift ()
-
-        for i in 0 .. (numberX - 1) do
-            for j in 0 .. (numberX - 2) do
-                if (elemsArr.[i, j] = elemsArr.[i, j + 1]) && (elemsArr.[i, j] <> "") then
-                    let value = elemsArr.[i, j] |> int
-                    elemsArr.[i, j] <- (value * 2).ToString()
-                    elemsArr.[i, j + 1] <- ""
-
-        shift ()
-        updateGrid elemsArr
-
-
-    let handlerRight () =
-        let shift () =
-            for i in 0 .. (numberX - 1) do
-                for j in (numberX - 1) .. -1 .. 0 do
-                    if (elemsArr.[i, j] <> "") then
-                        elemsArr.[i, *] <- shiftRightDown elemsArr.[i, *] elemsArr.[i, j] (j + 1)
-
-        shift ()
-
-        for i in 0 .. (numberX - 1) do
-            for j in (numberX - 1) .. -1 .. 1 do
-                if (elemsArr.[i, j] = elemsArr.[i, j - 1]) && (elemsArr.[i, j] <> "") then
-                    let value = elemsArr.[i, j] |> int
-                    elemsArr.[i, j] <- (value * 2).ToString()
-                    elemsArr.[i, j - 1] <- ""
-
-        shift ()
-
-        updateGrid elemsArr
-
-
-    let handlerUp () =
-        let shift () =
-            for i in 0 .. (numberX - 1) do
-                for j in 0 .. (numberX - 1) do
-                    if (elemsArr.[j, i] <> "") then
-                        elemsArr.[*, i] <- shifLeftUp elemsArr.[*, i] elemsArr.[j, i] (j - 1)
-
-        shift ()
-
-        for i in 0 .. (numberX - 1) do
-            for j in 0 .. (numberX - 2) do
-                if (elemsArr.[j, i] = elemsArr.[j + 1, i]) && (elemsArr.[j, i] <> "") then
-                    let value = elemsArr.[j, i] |> int
-                    elemsArr.[j, i] <- (value * 2).ToString()
-                    elemsArr.[j + 1, i] <- ""
-
-        shift ()
-
-        updateGrid elemsArr
-
-
-    let handlerDown () =
-        let shift () =
-            for i in 0 .. (numberX - 1) do
-                for j in (numberX - 1) .. -1 .. 0 do
-                    if (elemsArr.[j, i] <> "") then
-                        elemsArr.[*, i] <- shiftRightDown elemsArr.[*, i] elemsArr.[j, i] (j + 1)
-
-        shift ()
-
-        for i in 0 .. (numberX - 1) do
-            for j in (numberX - 1) .. -1 .. 1 do
-                if (elemsArr.[j, i] = elemsArr.[j - 1, i]) && (elemsArr.[j, i] <> "") then
-                    let value = elemsArr.[j, i] |> int
-                    elemsArr.[j, i] <- (value * 2).ToString()
-                    elemsArr.[j - 1, i] <- ""
-
-        shift ()
-
-        updateGrid elemsArr
-
-
-    let addRecogrinzers (grid: Grid) (myList: Frame[,]) =
+    let addRecogrinzers (grid: Grid) =
         let leftRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Left)
 
         leftRecognizer.Swiped.Add(fun _ ->
-            myHandlerLeft ()
+            myHandlerLeft numberRows positions frames
             generateNewValue ())
 
         let rightRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Right)
 
         rightRecognizer.Swiped.Add(fun _ ->
-            handlerRight ()
+            handlerRight numberRows positions frames
             generateNewValue ())
 
         let upRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Up)
 
         upRecognizer.Swiped.Add(fun _ ->
-            handlerUp ()
+            handlerUp numberRows positions frames
             generateNewValue ())
 
         let downRecognizer = SwipeGestureRecognizer(Direction = SwipeDirection.Down)
 
         downRecognizer.Swiped.Add(fun _ ->
-            handlerDown ()
+            handlerDown numberRows positions frames
             generateNewValue ())
 
         grid.GestureRecognizers.Add leftRecognizer
@@ -216,40 +84,15 @@ type MainPage(numberX: int) as this =
         grid.GestureRecognizers.Add downRecognizer
 
 
-    let setupGrid () =
-        let grid = Grid()
-        let rows = RowDefinitionCollection()
-        let newRow = RowDefinition()
-        newRow.Height <- GridLength(100.0, GridUnitType.Star)
-        let columns = ColumnDefinitionCollection()
-        let newColumn = ColumnDefinition()
-        newColumn.Width <- GridLength(100.0, GridUnitType.Star)
-
-        for i in 0 .. (numberX - 1) do
-            rows.Add newRow
-            columns.Add newColumn
-
-        grid.RowDefinitions <- rows
-        grid.ColumnDefinitions <- columns
-
-        for i in 0 .. (numberX - 1) do
-            for j in 0 .. (numberX - 1) do
-                let newBox = createBox ()
-                grid.Children.Add(newBox, i, j)
-                myList.[j, i] <- newBox
-
-        rendomizeSetup ()
-
-        addRecogrinzers grid myList
-        (grid)
-
 
     let setupRootView () =
-        let view = RelativeLayout()
-        view.BackgroundColor <- Color.Beige
-        let grid = setupGrid ()
+        let rootView = RelativeLayout()
+        rootView.BackgroundColor <- Color.Beige
+        let grid = setupGrid numberRows frames
+        rendomizeSetup ()
+        addRecogrinzers grid
 
-        view.Children.Add(
+        rootView.Children.Add(
             grid,
             Constraint.Constant(10.0),
             Constraint.Constant(0.0),
@@ -257,7 +100,7 @@ type MainPage(numberX: int) as this =
             Constraint.RelativeToParent(fun x -> x.Width - 20.0)
         )
 
-        (view)
+        (rootView)
 
 
     let baseViewLoad = base.Content <- setupRootView ()
